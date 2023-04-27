@@ -1,0 +1,220 @@
+---
+title: "Regresión lineal múltiple"
+format: 
+  html:
+    embed-resources: true
+editor: visual
+editor_options: 
+  chunk_output_type: inline
+---
+
+En la clase anterior nos enfocamos en la regresión lineal simple, ahora nos enfocaremos en la **regresión lineal múltiple**:
+
+$$
+\text{DATOS} = \text{MODELO} + \text{ERROR}
+$$
+
+$$
+Y_i = B_0 + \varepsilon_i \text{ (Cero parámetros)}
+$$
+
+$$
+Y_i = \beta_0 + \varepsilon_i \text{ (Un parámetro)}
+$$
+
+$$
+Y_i = \beta_0 + \beta_1X_i + \varepsilon_i \text{ (Dos parámetros)}
+$$
+
+$$
+Y_i = \beta_0 + \beta_1X_{i1} + \beta_2X_{i2} + \dots + \beta_{p-1}X_{i,p-1} + \varepsilon_i \text{ (Al menos tres parámetros)}
+$$
+
+En este escenario, a los parámetros $\beta_j$ se les llama **coeficientes parciales de regresión**.
+
+El valor de cada $\beta_j$ depende de los demás parámetros (y sus respectivos predictores) incluidos en el modelo.
+
+Este modelo introduce el problema de la posible **(multi)colinealidad o redundancia** de los predictores. Esto ocurre cuando es posible predecir en algún grado un $X_{ij}$ a partir de otros $X_{ij}$, es decir, cuando hay una correlación diferente de 0 entre al menos dos predictores.
+
+En cuanto a la inferencia estadística, el procedimiento es el mismo que hemos utilizado:
+
+1.  Se estima un modelo C(ompacto) y un modelo A(umentado).
+
+2.  Se calcula el estadístico de prueba $F$ con base en los SSE (*Sum of Squared Errors*) de cada modelo.
+
+3.  Se calcula la probabilidad de observar el valor de $F$ bajo el supuesto de que los modelos A y C generan el mismo error.
+
+4.  Se rechaza el modelo C en favor del modelo A si la probabilidad calculada en el paso anterior es menor a 0.05.
+
+R calcula los $b_0, b_1, \dots, b_{p-1}$ para los parámetros $\beta_0, \beta_1, \dots, \beta_{p-1}$ que **minimizan** los SSE de los modelos.
+
+Cuando al menos dos predictores son **multi(colineales)**, la interpretación de los parámetros puede ser ambigua.
+
+Para ilustrar la interpretación de los parámetros en la regresión lineal múltiple, vamos a utilizar el ejemplo que se desarrolla a partir de la página 107 del libro.
+
+```{r}
+#| eval: false
+install.packages("readr")
+install.packages("dplyr")
+```
+
+```{r}
+library(readr)
+library(dplyr)
+```
+
+```{r}
+students <- read_table("students.txt")
+```
+
+Para mayor facilidad de interpretación, vamos a convertir las libras en gramos y las pulgadas en centímetros.
+
+```{r}
+students <- students |>
+  mutate(Height = Height * 2.54, Weight = Weight * 453.59)
+```
+
+Vamos a estimar el siguiente modelo de 3 parámetros y 2 predictores:
+
+$$
+\text{Weight}_i = \beta_0 + \beta_1\text{Age}_i + \beta_2\text{Height}_i + \varepsilon_i
+$$
+
+```{r}
+modeloA <- lm(Weight ~ 1 + Age + Height, data = students)
+```
+
+Es posible representar este modelo de manera geométrica (ver *regressionPlane.qmd*).
+
+También podemos graficar las relaciones entre cada par de variables. En este gráfico se aprecia que `Age` y `Height` son predictores redundantes o multi(colineales).
+
+```{r}
+students |>
+  select(Weight, Height, Age) |>
+  pairs(lower.panel = NULL)
+```
+
+Veamos las estimaciones ($b_0$, $b_1$ y $b_2$) de los parámetros ($\beta_0$, $\beta_1$ y $\beta_2$). Los valores observados son diferentes a los de la página 109 del libro, ya que la métrica de la variable de respuesta y de un predictor fue modificada al importar los datos.
+
+```{r}
+coef(modeloA)
+```
+
+`(Intercept)`: Para una persona de 0 años de edad y con una estatura de 0 centímetros, el modelo predice un peso de aproximadamente $b_0 = -64058$ gramos.
+
+`Age`: Manteniendo constante `Height`, cuando la edad aumenta 1 año el modelo predice un aumento de aproximadamente $b_1 = 580$ gramos en `Weight`.
+
+`Height`: Manteniendo constante `Age`, cuando la estatura aumenta 1 centímetro el modelo predice un aumento de aproximadamente $b_2 = 642$ gramos en `Weight`.
+
+Si los predictores `Age` y `Height` se centran en la media, es posible obtener un intercepto interpretable en términos sustantivos.
+
+```{r}
+students <- students |>
+  mutate(Age = Age - mean(Age), Height = Height - mean(Height))
+
+modeloA <- lm(Weight ~ 1 + Age + Height, data = students)
+
+coef(modeloA)
+
+mean(students$Weight)
+```
+
+`(Intercept)`: Para una persona de edad promedio (`Age` = 0) y de estatura promedio (`Height` = 0), el modelo predice un peso promedio, es decir, un peso de aproximadamente $b_0 = 45371$ gramos.
+
+Adicionalmente, podríamos ver los intervalos de confianza de las estimaciones.
+
+```{r}
+confint(modeloA)
+```
+
+Ahora que tenemos un modelo con dos predictores y tres parámetros, existen muchos modelos C y modelos A que podríamos construir.
+
+En el contexto de una investigación, la especificación de ambos modelos debe basarse en los objetivos, las hipótesis y en la pregunta de investigación.
+
+En ocasiones simplemente queremos saber si el modelo con todos los predictores (A) es mejor que el modelo simple de un parámetro (intercepto) sin predictores (C).
+
+```{r}
+modeloC <- lm(Weight ~ 1, data = students)
+```
+
+```{r}
+anova(modeloC, modeloA)
+```
+
+A diferencia de otros, la columna `Df` tiene 2 grados de libertad, ya que el modelo A tiene dos parámetros adicionales al modelo C.
+
+También vemos debajo de `Pr(>F)` que el estadístico de prueba $F$ es estadísticamente significativo (menor a 0.05). El problema ahora es que no sabemos si ambos predictores (`Age` y `Height`) son estadísticamente significativos en cuanto a la reducción del error o solo uno de ellos. En caso de que fuera solo uno, tampoco sabríamos cuál es.
+
+Adicionalmente al resultado de la prueba de hipótesis, para los modelos generales suele reportarse el coeficiente $R^2$ (**R cuadrado**), el cual oscila entre 0 y 1 e indica la proporción de variabilidad que es capaz de "explicar" el modelo.
+
+```{r}
+R2 <- cor(fitted(modeloA), students$Weight)^2
+R2
+```
+
+También existe un coeficiente que da resultados similares: el R cuadrado ajustado. Generalmente es similar al R cuadrado cuando el modelo tiene pocos parámetros.
+
+$$
+\text{Adjusted R}^2 = 1 - \frac{(1 - R^2)(n - 1)}{n - p - 1}
+$$
+
+```{r}
+personas <- 19
+predictores <- 1
+1 - ((1 - R2) * (personas - 1)) / (personas - predictores - 1)
+```
+
+Una pregunta más focalizada sería saber si un modelo A con $p + 1$ parámetros reduce significativamente el error en comparación con un modelo C con $p$ parámetros.
+
+Un ejemplo de este tipo de prueba consiste en determinar si `Height` aporta una mayor capacidad predictiva a un modelo que ya incluya `Age`.
+
+```{r}
+modeloC <- lm(Weight ~ 1 + Age, data = students)
+modeloA <- lm(Weight ~ 1 + Age + Height, data = students)
+```
+
+```{r}
+anova(modeloC, modeloA)
+```
+
+Si el modelo tuviera muchos predictores, sería muy incómodo estimar manualmente varios modelos con un predictor adicional. Para ello, en R podemos usar la función `anova()` para extraer la información del modelo A con todos los parámetros.
+
+```{r}
+anova(modeloA)
+```
+
+Finalmente, siempre es recomendable evaluar la distribución de los residuos.
+
+```{r}
+hist(residuals(modeloA))
+```
+
+Hasta ahora, hemos utilizado las siguientes funciones que están directamente relacionadas con los modelos lineales.
+
+| Función     | Nombre               | Propósito                                                 |
+|----------------|----------------|-----------------------------------------|
+| lm()        | linear model         | Estimar modelos lineales                                  |
+| anova()     | analysis of variance | Examinar si el modelo reduce significativamente el error. |
+| residuals() | residuals            | Evaluar la distribución de los residuos                   |
+| fitted()    | fitted               | Examinar los valores predichos por el modelo              |
+| coef()      | coefficients         | Examinar las estimaciones del modelo                      |
+| confint()   | confidence intervals | Examinar los intervalos de confianza                      |
+
+También hemos utilizado otras funciones de propósito general para depurar y describir datos.
+
+| Función    | Nombre                                      | Propósito                                  |
+|----------------|-----------------------|----------------------------------|
+| read\_\*() | read table, read sav, read delim, read xlsx | Importar archivos .csv, .xlsx, .txt o .sav |
+| glimpse()  | glimpse                                     | Ojear los datos                            |
+| select()   | select                                      | Seleccionar columnas                       |
+| filter()   | filter                                      | Filtrar filas                              |
+| mutate()   | mutate                                      | Modificar o crear columnas                 |
+| rename()   | rename                                      | Modificar nombres de columnas              |
+| hist()     | histogram                                   | Generar un histograma                      |
+| plot()     | plot                                        | Generar distintos tipos de gráficos        |
+| boxplot()  | box plot                                    | Generar un gráfico de caja                 |
+| drop_na()  | drop NA                                     | Eliminar filas con al menos un valor `NA`  |
+
+Hemos usado varios operadores: `|>`, `$`,`[]` , `>`, `==`, `` ` ``, `"`, etc.
+
+Otras funciones que se han utilizado: `library()`, `install.packages()`, `cor()`, `pairs()`, `mean()`, `describe()`, `rowMeans()`, `across()`, `ggplot()`, `with()`, `as.factor()`, `is.numeric()`, `data.frame()`, `tibble()`, `summary()`, `group_by()`, `pivot_wider()`, `na_if()`, `sum()`, `seq()`, `rep()`, `curve()`, `pf()`, `qf()`, `abline()`, `for(`), `vector()`, `function()`, `optimize()`, `is.na()`, `var()`, `sigma()`, `sd()`, `c()`, `sample()`, `median()`, `runif()`, `dnorm()`, `scale()`, `integrate()`, `pnorm()`, `round()`, `format()`, `options()`, `where()`, `deviance()`, etc.
