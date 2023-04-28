@@ -5,8 +5,19 @@ format:
     embed-resources: true
 editor: visual
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
+
+```{r}
+#| eval: false
+install.packages("readr")
+install.packages("dplyr")
+```
+
+```{r}
+library(readr)
+library(dplyr)
+```
 
 En la clase anterior nos enfocamos en la regresión lineal simple, ahora nos enfocaremos en la **regresión lineal múltiple**:
 
@@ -48,20 +59,27 @@ En cuanto a la inferencia estadística, el procedimiento es el mismo que hemos u
 
 R calcula los $b_0, b_1, \dots, b_{p-1}$ para los parámetros $\beta_0, \beta_1, \dots, \beta_{p-1}$ que **minimizan** los SSE de los modelos.
 
-Cuando al menos dos predictores son **multi(colineales)**, la interpretación de los parámetros puede ser ambigua.
+Cuando los predictores son **colineales o multicolineales** (redundantes entre sí), las estimaciones de los parámetros se vuelven muy inestables -\> intervalos de confianza muy anchos.
+
+```{r}
+N <- 500
+
+tb <- tibble(
+  e = rnorm(N),
+  x1 = rnorm(N),
+  x2 = rnorm(N),
+  x3 = rnorm(N),
+  # x3 = x1 + x2 + rnorm(N, sd = 0.01),
+  y = 5 + 2.5*x1 + 1.9*x2 + -1*x3 + e)
+
+modelo <- lm(y ~ 1 + x1 + x2 + x3, data = tb)  
+
+coef(modelo)
+
+confint(modelo)
+```
 
 Para ilustrar la interpretación de los parámetros en la regresión lineal múltiple, vamos a utilizar el ejemplo que se desarrolla a partir de la página 107 del libro.
-
-```{r}
-#| eval: false
-install.packages("readr")
-install.packages("dplyr")
-```
-
-```{r}
-library(readr)
-library(dplyr)
-```
 
 ```{r}
 students <- read_table("students.txt")
@@ -192,7 +210,7 @@ hist(residuals(modeloA))
 Hasta ahora, hemos utilizado las siguientes funciones que están directamente relacionadas con los modelos lineales.
 
 | Función     | Nombre               | Propósito                                                 |
-|----------------|----------------|-----------------------------------------|
+|-----------------|-----------------|--------------------------------------|
 | lm()        | linear model         | Estimar modelos lineales                                  |
 | anova()     | analysis of variance | Examinar si el modelo reduce significativamente el error. |
 | residuals() | residuals            | Evaluar la distribución de los residuos                   |
@@ -203,18 +221,18 @@ Hasta ahora, hemos utilizado las siguientes funciones que están directamente re
 También hemos utilizado otras funciones de propósito general para depurar y describir datos.
 
 | Función    | Nombre                                      | Propósito                                  |
-|----------------|-----------------------|----------------------------------|
+|------------------|----------------------|--------------------------------|
 | read\_\*() | read table, read sav, read delim, read xlsx | Importar archivos .csv, .xlsx, .txt o .sav |
 | glimpse()  | glimpse                                     | Ojear los datos                            |
 | select()   | select                                      | Seleccionar columnas                       |
 | filter()   | filter                                      | Filtrar filas                              |
 | mutate()   | mutate                                      | Modificar o crear columnas                 |
 | rename()   | rename                                      | Modificar nombres de columnas              |
+| drop_na()  | drop NA                                     | Eliminar filas con al menos un valor `NA`  |
 | hist()     | histogram                                   | Generar un histograma                      |
 | plot()     | plot                                        | Generar distintos tipos de gráficos        |
 | boxplot()  | box plot                                    | Generar un gráfico de caja                 |
-| drop_na()  | drop NA                                     | Eliminar filas con al menos un valor `NA`  |
 
 Hemos usado varios operadores: `|>`, `$`,`[]` , `>`, `==`, `` ` ``, `"`, etc.
 
-Otras funciones que se han utilizado: `library()`, `install.packages()`, `cor()`, `pairs()`, `mean()`, `describe()`, `rowMeans()`, `across()`, `ggplot()`, `with()`, `as.factor()`, `is.numeric()`, `data.frame()`, `tibble()`, `summary()`, `group_by()`, `pivot_wider()`, `na_if()`, `sum()`, `seq()`, `rep()`, `curve()`, `pf()`, `qf()`, `abline()`, `for(`), `vector()`, `function()`, `optimize()`, `is.na()`, `var()`, `sigma()`, `sd()`, `c()`, `sample()`, `median()`, `runif()`, `dnorm()`, `scale()`, `integrate()`, `pnorm()`, `round()`, `format()`, `options()`, `where()`, `deviance()`, etc.
+Otras funciones que se han utilizado: `library()`, `install.packages()`, `cor()`, `pairs()`, `mean()`, `describe()`, `rowMeans()`, `across()`, `ggplot()`, `with()`, `as.factor()`, `is.numeric()`, `data.frame()`, `tibble()`, `summary()`, `group_by()`, `pivot_wider()`, `transmute()`, `na_if()`, `sum()`, `seq()`, `rep()`, `curve()`, `pf()`, `qf()`, `abline()`, `for(`), `vector()`, `function()`, `optimize()`, `is.na()`, `var()`, `sigma()`, `sd()`, `c()`, `sample()`, `median()`, `runif()`, `dnorm()`, `scale()`, `integrate()`, `pnorm()`, `round()`, `format()`, `options()`, `where()`, `deviance()` y posiblemente otras más.
