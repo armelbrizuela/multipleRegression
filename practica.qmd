@@ -81,20 +81,24 @@ Muestre si el modelo A en general reduce el error significativamente.
 
 ```
 
-Con la función `summary()` muestre los resultados del modelo A.
+Muestre los coeficientes de regresión y los intervalos de confianza con las funciones `coef()` y `confint()`.
 
 ```{r}
 
 ```
 
-Muestre únicamente los coeficientes de regresión y los intervalos de confianza con las funciones `coef()` y `confint()`.
+Genere un gráfico de los residuos del modelo A para visualizar si muestran una distribución (aproximadamente) normal.
 
 ```{r}
 
 ```
 
-Genere dos gráficos de los residuos para visualizar si muestran una distribución (aproximadamente) normal.
+Estime dos modelos, cada uno debe incluir únicamente uno de los predictores del modelo A. Verifique si los coeficientes de regresión en ambos modelos son iguales a los del modelo A.
 
 ```{r}
 
 ```
+
+
+
+

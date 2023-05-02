@@ -7,73 +7,53 @@ editor_options:
 ---
 
 ```{r}
-#| eval: false
-install.packages("scatterplot3d")
-install.packages("readr")
-```
-
-```{r}
 library(scatterplot3d)
 library(readr)
 ```
 
 ```{r}
 students <- read_table("students.txt")
-```
 
-Tomado de https://stackoverflow.com/a/51868640
+# Data, linear regression with two explanatory variables
+Height  <- students$Height
+Weight  <- students$Weight
+Age  <- students$Age
+df <- data.frame(Height, Weight, Age)
+LM <- lm(Weight ~ Height + Age, df)
 
-```{r}
-regressionPlane <- function(datos) {
-  
-  # Data, linear regression with two explanatory variables
-  Height  <- datos$Height
-  Weight  <- datos$Weight
-  Age  <- datos$Age
-  LM <- lm(Weight ~ Height + Age, datos)
-  
-  # scatterplot
-  s3d <- scatterplot3d(
-    Height, Age, Weight, pch = 19, type = "p", color = "darkgrey",
-    main = "Regression plane without residuals", grid = TRUE, box = FALSE,
-    mar = c(2.5, 2.5, 2, 1.5), angle = 55)
-  
-  # regression plane
-  s3d$plane3d(LM, draw_polygon = TRUE, draw_lines = TRUE, 
-              polygon_args = list(col = rgb(.1, .2, .7, .5)))
-  
-  # overlay positive residuals
-  wh <- resid(LM) > 0
-  s3d$points3d(Height[wh], Age[wh], Weight[wh], pch = 19)
-  
-  # scatterplot
-  s3d <- scatterplot3d(
-    Height, Age, Weight, pch = 19, type = "p", color = "darkgrey",
-    main = "Regression plane with residuals", grid = TRUE, box = FALSE,
-    mar = c(2.5, 2.5, 2, 1.5), angle = 55)
-  
-  # compute locations of segments
-  orig     <- s3d$xyz.convert(Height, Age, Weight)
-  plane    <- s3d$xyz.convert(Height, Age, fitted(LM))
-  i.negpos <- 1 + (resid(LM) > 0) # which residuals are above the plane?
-  
-  # draw residual distances to regression plane
-  segments(
-    orig$x, orig$y, plane$x, plane$y, col = "red", lty = c(2, 1)[i.negpos], lwd = 1.5)
-  
-  # draw the regression plane
-  s3d$plane3d(
-    LM, draw_polygon = TRUE, draw_lines = TRUE, 
-    polygon_args = list(col = rgb(0.8, 0.8, 0.8, 0.8)))
-  
-  # redraw positive residuals and segments above the plane
-  wh <- resid(LM) > 0
-  segments(orig$x[wh], orig$y[wh], plane$x[wh], plane$y[wh], 
-           col = "red", lty = 1, lwd = 1.5)
-  s3d$points3d(Height[wh], Age[wh], Weight[wh], pch = 19)
-}
-```
+# scatterplot
+s3d <- scatterplot3d(Height, Age, Weight, pch = 19, type = "p", color = "darkgrey",
+                     main = "Regression Plane", grid = TRUE, box = FALSE,  
+                     mar = c(2.5, 2.5, 2, 1.5), angle = 55)
 
-```{r}
-regressionPlane(students)
+# regression plane
+s3d$plane3d(LM, draw_polygon = TRUE, draw_lines = TRUE, 
+            polygon_args = list(col = rgb(.1, .2, .7, .5)))
+
+# overlay positive residuals
+wh <- resid(LM) > 0
+s3d$points3d(Height, Age, Weight, pch = 19)
+
+# scatterplot
+s3d <- scatterplot3d(Height, Age, Weight, pch = 19, type = "p", color = "darkgrey",
+                     main = "Regression Plane", grid = TRUE, box = FALSE,  
+                     mar = c(2.5, 2.5, 2, 1.5), angle = 55)
+
+# compute locations of segments
+orig     <- s3d$xyz.convert(Height, Age, Weight)
+plane    <- s3d$xyz.convert(Height, Age, fitted(LM))
+i.negpos <- 1 + (resid(LM) > 0) # which residuals are above the plane?
+
+# draw residual distances to regression plane
+segments(orig$x, orig$y, plane$x, plane$y, col = "red", lty = c(2, 1)[i.negpos], 
+         lwd = 1.5)
+
+# draw the regression plane
+s3d$plane3d(LM, draw_polygon = TRUE, draw_lines = TRUE, 
+            polygon_args = list(col = rgb(0.8, 0.8, 0.8, 0.8)))
+
+# redraw positive residuals and segments above the plane
+wh <- resid(LM) > 0
+segments(orig$x, orig$y, plane$x, plane$y, col = "red", lty = 1, lwd = 1.5)
+s3d$points3d(Height, Age, Weight, pch = 19)
 ```

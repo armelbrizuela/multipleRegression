@@ -43,8 +43,6 @@ $$
 
 En este escenario, a los parámetros $\beta_j$ se les llama **coeficientes parciales de regresión**.
 
-El valor de cada $\beta_j$ depende de los demás parámetros (y sus respectivos predictores) incluidos en el modelo.
-
 Este modelo introduce el problema de la posible **(multi)colinealidad o redundancia** de los predictores. Esto ocurre cuando es posible predecir en algún grado un $X_{ij}$ a partir de otros $X_{ij}$, es decir, cuando hay una correlación diferente de 0 entre al menos dos predictores.
 
 En cuanto a la inferencia estadística, el procedimiento es el mismo que hemos utilizado:
@@ -210,7 +208,7 @@ hist(residuals(modeloA))
 Hasta ahora, hemos utilizado las siguientes funciones que están directamente relacionadas con los modelos lineales.
 
 | Función     | Nombre               | Propósito                                                 |
-|-----------------|-----------------|--------------------------------------|
+|------------------|------------------|-------------------------------------|
 | lm()        | linear model         | Estimar modelos lineales                                  |
 | anova()     | analysis of variance | Examinar si el modelo reduce significativamente el error. |
 | residuals() | residuals            | Evaluar la distribución de los residuos                   |
