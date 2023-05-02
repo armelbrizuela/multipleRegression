@@ -16,13 +16,14 @@ install.packages("dplyr")
 Con la función `library()`, active los paquetes **readr** y **dplyr**.
 
 ```{r}
-
+library(readr)
+library(dplyr)
 ```
 
 Lea el archivo de datos **titles.csv** con la función `read_delim()` y guarde los datos en un objeto llamado `titles`. Como delimitador de columnas el archivo utiliza la coma.
 
 ```{r}
-
+titles <- read_delim("titles.csv", delim = ",")
 ```
 
 Este archivo proviene del sitio web [Kaggle](https://www.kaggle.com/datasets/dgoenrique/netflix-movies-and-tv-shows?resource=download) e incluye las siguientes columnas:
@@ -60,45 +61,53 @@ Este archivo proviene del sitio web [Kaggle](https://www.kaggle.com/datasets/dgo
 Verifique con `glimpse()` qué tipos de columnas incluye el objeto `titles`.
 
 ```{r}
-
+glimpse(titles)
 ```
 
 Filtre las filas en las que `type` == "SHOW". Guarde el resultado en un objeto llamado `titles`.
 
 ```{r}
-
+titles <- filter(titles, type == "SHOW")
 ```
 
 Seleccione una variable de respuesta continua y al menos dos predictores continuos. Con dichas variables, estime un modelo Compacto y un modelo Aumentado.
 
 ```{r}
-
+modeloC <- lm(tmdb_popularity ~ 1 + seasons, data = titles)
+modeloA <- lm(tmdb_popularity ~ 1 + seasons + release_year, data = titles)
 ```
 
 Muestre si el modelo A en general reduce el error significativamente.
 
 ```{r}
-
+anova(modeloC, modeloA)
 ```
 
 Muestre los coeficientes de regresión y los intervalos de confianza con las funciones `coef()` y `confint()`.
 
 ```{r}
-
+coef(modeloA)
+confint(modeloA)
 ```
 
 Genere un gráfico de los residuos del modelo A para visualizar si muestran una distribución (aproximadamente) normal.
 
 ```{r}
-
+hist(residuals(modeloA))
+boxplot(residuals(modeloA))
 ```
 
 Estime dos modelos, cada uno debe incluir únicamente uno de los predictores del modelo A. Verifique si los coeficientes de regresión en ambos modelos son iguales a los del modelo A.
 
 ```{r}
-
+modeloA <- lm(tmdb_popularity ~ 1 + seasons + release_year, data = titles)
+coef(modeloA)
 ```
 
+```{r}
+modelo1 <- lm(tmdb_popularity ~ 1 + seasons, data = titles)
+modelo2 <- lm(tmdb_popularity ~ 1 + release_year, data = titles)
 
-
-
+coef(modelo1)
+coef(modelo2)
+```
